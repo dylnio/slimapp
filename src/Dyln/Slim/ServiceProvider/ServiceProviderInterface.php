@@ -1,5 +1,5 @@
 <?php
-namespace Dyln\ServiceProvider;
+namespace Dyln\Slim\ServiceProvider;
 
 use Interop\Container\ContainerInterface;
 

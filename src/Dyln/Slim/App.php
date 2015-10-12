@@ -1,7 +1,7 @@
 <?php
 namespace Dyln\Slim;
 
-use Dyln\ServiceProvider\ServiceProviderInterface;
+use Dyln\Slim\ServiceProvider\ServiceProviderInterface;
 
 class App extends \Slim\App
 {
