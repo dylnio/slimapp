@@ -1,0 +1,25 @@
+{
+  "name": "dylnio/packages-slimapp",
+  "type": "library",
+  "keywords": [],
+  "license": "BSD-3-Clause",
+  "authors": [
+    {
+      "name": "Bill Yildirim",
+      "email": "bill@dyln.io"
+    }
+  ],
+  "require": {
+    "akrabat/rka-slim-zfsm-container": "^1.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^4.8"
+  },
+  "autoload": {
+    "psr-4": {
+      "Dyln\\": "src/Dyln"
+    }
+  },
+  "repositories": [],
+  "minimum-stability": "beta"
+}
