@@ -40,4 +40,14 @@ class App extends \Slim\App
             $this->addServiceProvider($provider);
         }
     }
+
+    public function getGeneric($pattern, $actionClassName)
+    {
+        return $this->get($pattern, $actionClassName . ':dispatch');
+    }
+
+    public function postGeneric($pattern, $actionClassName)
+    {
+        return $this->post($pattern, $actionClassName . ':dispatch');
+    }
 }
