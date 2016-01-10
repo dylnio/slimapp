@@ -1,6 +1,7 @@
 <?php
 namespace Dyln\Slim;
 
+use Dyln\Slim\ServiceProvider\BootableServiceProviderInterface;
 use Dyln\Slim\ServiceProvider\ServiceProviderInterface;
 
 class App extends \Slim\App
@@ -30,6 +31,11 @@ class App extends \Slim\App
     {
         foreach ($this->providers as $provider) {
             $provider->register($this->getContainer());
+        }
+        foreach ($this->providers as $provider) {
+            if ($provider instanceof BootableServiceProviderInterface) {
+                $provider->boot($this->getContainer());
+            }
         }
     }
 
