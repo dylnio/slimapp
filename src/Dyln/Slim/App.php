@@ -17,6 +17,7 @@ class App extends \Slim\App
         $this->settings = $settings;
         $containerBuilder = new ContainerBuilder(Container::class);
         $containerBuilder->addDefinitions($base);
+//        $containerBuilder->setDefinitionCache(new PhpFileCache('/tmp'));
         $this->configureContainer($containerBuilder);
         $container = $containerBuilder->build();
         $container->set('app', $this);
