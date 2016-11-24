@@ -5,6 +5,7 @@ use Interop\Container\ContainerInterface;
 
 abstract class AbstractModule implements ModuleInterface
 {
+    protected $priority = 1000;
     /** @var  ContainerInterface */
     protected $container;
 
@@ -18,4 +19,11 @@ abstract class AbstractModule implements ModuleInterface
     }
 
     abstract public function init();
+
+    abstract public function boot();
+
+    public function getPriority(): int
+    {
+        return $this->priority;
+    }
 }
