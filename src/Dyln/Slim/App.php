@@ -72,4 +72,9 @@ class App extends \Slim\App
     {
         return $this->post($pattern, $actionClassName . ':dispatch');
     }
+
+    public function putGeneric($pattern, $actionClassName)
+    {
+        return $this->put($pattern, $actionClassName . ':dispatch');
+    }
 }
