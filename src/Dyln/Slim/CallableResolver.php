@@ -1,4 +1,5 @@
 <?php
+
 namespace Dyln\Slim;
 
 use Interop\Container\ContainerInterface;
@@ -44,7 +45,11 @@ class CallableResolver implements CallableResolverInterface
                 $method = $matches[2];
 
                 if ($this->container->has($class)) {
-                    $resolved = [$this->container->get($class), $method];
+                    $obj = $this->container->get($class);
+                    if ($obj instanceof ContainerAwareInterface) {
+                        $obj->setContainer($this->container);
+                    }
+                    $resolved = [$obj, $method];
                 } else {
                     if (!class_exists($class)) {
                         throw new RuntimeException(sprintf('Callable %s does not exist', $class));
