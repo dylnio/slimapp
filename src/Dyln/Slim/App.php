@@ -1,4 +1,5 @@
 <?php
+
 namespace Dyln\Slim;
 
 use DI\ContainerBuilder;
@@ -10,17 +11,17 @@ class App extends \Slim\App
 {
     /** @var ServiceProviderInterface[] */
     protected $providers = [];
-    protected $settings;
+    protected $config;
 
-    public function __construct($settings, $base)
+    public function __construct($config, $params = [])
     {
-        $this->settings = $settings;
+        $this->config = $config;
         $containerBuilder = new ContainerBuilder(Container::class);
-        $containerBuilder->addDefinitions($base);
-//        $containerBuilder->setDefinitionCache(new PhpFileCache('/tmp'));
+//        $containerBuilder->addDefinitions($config);
         $this->configureContainer($containerBuilder);
         $container = $containerBuilder->build();
         $container->set('app', $this);
+        $container->set('app_params', $params);
         parent::__construct($container);
         $this->registerServiceProviders();
     }
@@ -28,7 +29,7 @@ class App extends \Slim\App
 
     public function configureContainer(ContainerBuilder $builder)
     {
-        $builder->addDefinitions($this->settings);
+        $builder->addDefinitions($this->config);
     }
 
     public function addServiceProvider(ServiceProviderInterface $provider)
@@ -57,7 +58,7 @@ class App extends \Slim\App
 
     private function registerServiceProviders()
     {
-        $providers = $this->getContainer()->get('config')['providers'];
+        $providers = $this->getContainer()->get('app_params')['providers'];
         foreach ($providers as $provider) {
             $this->addServiceProvider($provider);
         }
