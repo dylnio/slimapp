@@ -3,6 +3,8 @@
 namespace Dyln\Slim;
 
 use DI\ContainerBuilder;
+use Doctrine\Common\Cache\FilesystemCache;
+use Doctrine\Common\Cache\RedisCache;
 use Dyln\DI\Container;
 use Dyln\Slim\Module\ModuleInterface;
 use Interop\Container\ContainerInterface;
@@ -17,7 +19,8 @@ class App extends \Slim\App
     {
         $this->config = $config;
         $containerBuilder = new ContainerBuilder(Container::class);
-        $containerBuilder->setDefinitionCache(new \Doctrine\Common\Cache\ArrayCache($params['di']['cache']['dir']));
+        $cache = $this->getCache($params);
+        $containerBuilder->setDefinitionCache($cache);
         $containerBuilder->addDefinitions($this->config);
         $container = $containerBuilder->build();
         $container->set('app', $this);
@@ -57,6 +60,26 @@ class App extends \Slim\App
             /** @var ModuleInterface $module */
             $module = $container->get($moduleClass);
             $this->modules[] = $module;
+        }
+    }
+
+    private function getCache($params = [])
+    {
+        $adapter = $params['di']['cache']['adapter'];
+        if ($adapter == RedisCache::class) {
+            $cache = new RedisCache();
+            $redis = new \Redis();
+            $redis->connect($params['di']['cache'][RedisCache::class]['host'], $params['di']['cache'][RedisCache::class]['port']);
+            $redis->setOption(\Redis::OPT_SERIALIZER, defined('Redis::SERIALIZER_IGBINARY') ? \Redis::SERIALIZER_IGBINARY : \Redis::SERIALIZER_PHP);
+            $redis->select($params['di']['cache'][RedisCache::class]['db']);
+            $cache->setRedis($redis);
+            $cache->setNamespace($params['di']['cache'][RedisCache::class]['prefix']);
+
+            return $cache;
+        } elseif ($adapter == FilesystemCache::class) {
+            return new \Doctrine\Common\Cache\FilesystemCache($params['di']['cache'][FilesystemCache::class]['dir']);
+        } else {
+            return new \Doctrine\Common\Cache\ArrayCache();
         }
     }
 }
