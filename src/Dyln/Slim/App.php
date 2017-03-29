@@ -5,8 +5,6 @@ namespace Dyln\Slim;
 use DI\ContainerBuilder;
 use Dyln\DI\Container;
 use Dyln\Slim\Module\ModuleInterface;
-use Dyln\Slim\ServiceProvider\BootableServiceProviderInterface;
-use Dyln\Slim\ServiceProvider\ServiceProviderInterface;
 use Interop\Container\ContainerInterface;
 
 class App extends \Slim\App
