@@ -4,63 +4,36 @@ namespace Dyln\Slim;
 
 use DI\ContainerBuilder;
 use Dyln\DI\Container;
+use Dyln\Slim\Module\ModuleInterface;
 use Dyln\Slim\ServiceProvider\BootableServiceProviderInterface;
 use Dyln\Slim\ServiceProvider\ServiceProviderInterface;
+use Interop\Container\ContainerInterface;
 
 class App extends \Slim\App
 {
-    /** @var ServiceProviderInterface[] */
-    protected $providers = [];
+    /** @var ModuleInterface[] */
+    protected $modules = [];
     protected $config;
 
     public function __construct($config, $params = [])
     {
         $this->config = $config;
         $containerBuilder = new ContainerBuilder(Container::class);
-//        $containerBuilder->addDefinitions($config);
-        $this->configureContainer($containerBuilder);
+        $containerBuilder->setDefinitionCache(new \Doctrine\Common\Cache\ArrayCache($params['di']['cache']['dir']));
+        $containerBuilder->addDefinitions($this->config);
         $container = $containerBuilder->build();
         $container->set('app', $this);
+        $container->set(App::class, $this);
         $container->set('app_params', $params);
         parent::__construct($container);
-        $this->registerServiceProviders();
+        $this->registerModules($container);
     }
 
-
-    public function configureContainer(ContainerBuilder $builder)
+    public function boot($params = [])
     {
-        $builder->addDefinitions($this->config);
-    }
-
-    public function addServiceProvider(ServiceProviderInterface $provider)
-    {
-        $this->providers[get_class($provider)] = $provider;
-    }
-
-    public function addServiceProviders($providers = [])
-    {
-        foreach ($providers as $provider) {
-            $this->addServiceProvider($provider);
-        }
-    }
-
-    public function boot()
-    {
-        foreach ($this->providers as $provider) {
-            $provider->register($this->getContainer());
-        }
-        foreach ($this->providers as $provider) {
-            if ($provider instanceof BootableServiceProviderInterface) {
-                $provider->boot($this->getContainer());
-            }
-        }
-    }
-
-    private function registerServiceProviders()
-    {
-        $providers = $this->getContainer()->get('app_params')['providers'];
-        foreach ($providers as $provider) {
-            $this->addServiceProvider($provider);
+        foreach ($this->modules as $module) {
+            $module->init($params);
+            $module->boot();
         }
     }
 
@@ -77,5 +50,15 @@ class App extends \Slim\App
     public function putGeneric($pattern, $actionClassName)
     {
         return $this->put($pattern, $actionClassName . ':dispatch');
+    }
+
+    private function registerModules(ContainerInterface $container)
+    {
+        $modules = $container->get('app_params')['modules'];
+        foreach ($modules as $moduleClass) {
+            /** @var ModuleInterface $module */
+            $module = $container->get($moduleClass);
+            $this->modules[] = $module;
+        }
     }
 }

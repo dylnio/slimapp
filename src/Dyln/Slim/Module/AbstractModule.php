@@ -1,26 +1,18 @@
 <?php
-namespace Dyln\Slim\Module;
 
-use Interop\Container\ContainerInterface;
+namespace Dyln\Slim\Module;
 
 abstract class AbstractModule implements ModuleInterface
 {
     protected $priority = 1000;
-    /** @var  ContainerInterface */
-    protected $container;
 
-    /**
-     * AbstractModule constructor.
-     * @param ContainerInterface $container
-     */
-    public function __construct(ContainerInterface $container)
+    public function init($params = [])
     {
-        $this->container = $container;
     }
 
-    abstract public function init();
-
-    abstract public function boot();
+    public function boot()
+    {
+    }
 
     public function getPriority(): int
     {
