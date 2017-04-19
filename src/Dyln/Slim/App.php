@@ -3,6 +3,7 @@
 namespace Dyln\Slim;
 
 use DI\ContainerBuilder;
+use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\FilesystemCache;
 use Doctrine\Common\Cache\RedisCache;
 use Dyln\DI\Container;
@@ -30,6 +31,36 @@ class App extends \Slim\App
         $this->registerModules($container);
     }
 
+    private function getCache($params = [])
+    {
+        $adapter = $params['di']['cache']['adapter'];
+        if ($adapter == RedisCache::class) {
+            $cache = new RedisCache();
+            $redis = new \Redis();
+            $redis->connect($params['di']['cache'][RedisCache::class]['host'], $params['di']['cache'][RedisCache::class]['port']);
+            $redis->setOption(\Redis::OPT_SERIALIZER, defined('Redis::SERIALIZER_IGBINARY') ? \Redis::SERIALIZER_IGBINARY : \Redis::SERIALIZER_PHP);
+            $redis->select($params['di']['cache'][RedisCache::class]['db']);
+            $cache->setRedis($redis);
+            $cache->setNamespace($params['di']['cache'][RedisCache::class]['prefix']);
+
+            return $cache;
+        } elseif ($adapter == FilesystemCache::class) {
+            return new FilesystemCache($params['di']['cache'][FilesystemCache::class]['dir']);
+        } else {
+            return new ArrayCache();
+        }
+    }
+
+    private function registerModules(ContainerInterface $container)
+    {
+        $modules = $container->get('app_params')['modules'];
+        foreach ($modules as $moduleClass) {
+            /** @var ModuleInterface $module */
+            $module = $container->get($moduleClass);
+            $this->modules[] = $module;
+        }
+    }
+
     public function boot($params = [])
     {
         foreach ($this->modules as $module) {
@@ -51,35 +82,5 @@ class App extends \Slim\App
     public function putGeneric($pattern, $actionClassName)
     {
         return $this->put($pattern, $actionClassName . ':dispatch');
-    }
-
-    private function registerModules(ContainerInterface $container)
-    {
-        $modules = $container->get('app_params')['modules'];
-        foreach ($modules as $moduleClass) {
-            /** @var ModuleInterface $module */
-            $module = $container->get($moduleClass);
-            $this->modules[] = $module;
-        }
-    }
-
-    private function getCache($params = [])
-    {
-        $adapter = $params['di']['cache']['adapter'];
-        if ($adapter == RedisCache::class) {
-            $cache = new RedisCache();
-            $redis = new \Redis();
-            $redis->connect($params['di']['cache'][RedisCache::class]['host'], $params['di']['cache'][RedisCache::class]['port']);
-            $redis->setOption(\Redis::OPT_SERIALIZER, defined('Redis::SERIALIZER_IGBINARY') ? \Redis::SERIALIZER_IGBINARY : \Redis::SERIALIZER_PHP);
-            $redis->select($params['di']['cache'][RedisCache::class]['db']);
-            $cache->setRedis($redis);
-            $cache->setNamespace($params['di']['cache'][RedisCache::class]['prefix']);
-
-            return $cache;
-        } elseif ($adapter == FilesystemCache::class) {
-            return new \Doctrine\Common\Cache\FilesystemCache($params['di']['cache'][FilesystemCache::class]['dir']);
-        } else {
-            return new \Doctrine\Common\Cache\ArrayCache();
-        }
     }
 }
