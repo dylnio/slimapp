@@ -37,37 +37,24 @@ class CallableResolver implements CallableResolverInterface
      */
     public function resolve($toResolve)
     {
+        $class = null;
+        $method = null;
         if (!is_callable($toResolve) && is_string($toResolve)) {
-            // check for slim callable as "class:method"
-            $callablePattern = '!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!';
+            $callablePattern = '!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!'; // Controller:Action
             if (preg_match($callablePattern, $toResolve, $matches)) {
                 $class = $matches[1];
                 $method = $matches[2];
-
-                if ($this->container->has($class)) {
-                    $obj = $this->container->get($class);
-                    if ($obj instanceof ContainerAwareInterface) {
-                        $obj->setContainer($this->container);
-                    }
-                    $resolved = [$obj, $method];
-                } else {
-                    if (!class_exists($class)) {
-                        throw new RuntimeException(sprintf('Callable %s does not exist', $class));
-                    }
-                    $resolved = [new $class, $method];
-                }
             } else {
-                // check if string is something in the DIC that's callable or is a class name which
-                // has an __invoke() method
                 $class = $toResolve;
-                if ($this->container->has($class)) {
-                    $resolved = $this->container->get($class);
-                } else {
-                    if (!class_exists($class)) {
-                        throw new RuntimeException(sprintf('Callable %s does not exist', $class));
-                    }
-                    $resolved = new $class;
-                }
+            }
+            $obj = $this->container->get($class);
+            if ($obj instanceof ContainerAwareInterface) {
+                $obj->setContainer($this->container);
+            }
+            if ($method) {
+                $resolved = [$obj, $method];
+            } else {
+                $resolved = $obj;
             }
             if (!is_callable($resolved)) {
                 throw new RuntimeException(sprintf('%s is not resolvable', $toResolve));
