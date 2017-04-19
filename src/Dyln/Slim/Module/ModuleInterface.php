@@ -1,4 +1,5 @@
 <?php
+
 namespace Dyln\Slim\Module;
 
 interface ModuleInterface
@@ -6,6 +7,4 @@ interface ModuleInterface
     public function init($params = []);
 
     public function boot();
-
-    public function getPriority(): int;
 }
