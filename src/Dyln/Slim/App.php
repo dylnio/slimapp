@@ -83,4 +83,9 @@ class App extends \Slim\App
     {
         return $this->put($pattern, $actionClassName . ':dispatch');
     }
+
+    public function deleteGeneric($pattern, $actionClassName)
+    {
+        return $this->delete($pattern, $actionClassName . ':dispatch');
+    }
 }
